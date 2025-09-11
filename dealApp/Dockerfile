@@ -41,7 +41,7 @@ COPY --from=build-stage /opt/cartesi/dapp/dist .
 
 # Environment variable for your app (optional, keep if your app uses it)
 #ENV ROLLUP_HTTP_SERVER_URL="http://0.0.0.0:5004"
-ENV ROLLUP_HTTP_SERVER_URL="http://127.0.0.1:5004"
+ENV ROLLUP_HTTP_SERVER_URL="http://0.0.0.0:5004"
 
 
 # Expose the app port
