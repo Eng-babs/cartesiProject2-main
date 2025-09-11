@@ -1,52 +1,31 @@
 # syntax=docker.io/docker/dockerfile:1
 
-# --- Disabled riscv64 build stage ---
-# Build stage on riscv64 to ensure native binaries match
-# FROM --platform=linux/riscv64 cartesi/node:20.8.0-jammy AS build-stage
-# WORKDIR /opt/cartesi/dapp
-# COPY . .
-# RUN yarn install && yarn build
-
-# --- Use amd64 build instead (stable for Jenkins) ---
+# --- Build stage (on amd64 for Jenkins/demo) ---
 FROM node:20.8.0-bookworm AS build-stage
 WORKDIR /opt/cartesi/dapp
 COPY . .
 RUN yarn install && yarn build
 
-# --- Disabled riscv64 runtime ---
-# FROM --platform=linux/riscv64 cartesi/node:20.8.0-jammy-slim
-
-# --- Use amd64 slim runtime instead ---
+# --- Runtime stage ---
 FROM node:20.8.0-bookworm-slim
-
-# ARG MACHINE_EMULATOR_TOOLS_VERSION=0.14.1
-# RUN apt-get update --allow-insecure-repositories \
-#  && apt-get install -y --no-install-recommends --allow-unauthenticated wget \
-#  && wget https://github.com/cartesi/machine-emulator-tools/releases/download/v${MACHINE_EMULATOR_TOOLS_VERSION}/machine-emulator-tools-v${MACHINE_EMULATOR_TOOLS_VERSION}.deb \
-#  && dpkg -i machine-emulator-tools-v${MACHINE_EMULATOR_TOOLS_VERSION}.deb \
-#  || apt-get -f install -y \
-#  && rm machine-emulator-tools-v${MACHINE_EMULATOR_TOOLS_VERSION}.deb
 
 LABEL io.cartesi.rollups.sdk_version=0.9.0
 LABEL io.cartesi.rollups.ram_size=128Mi
 
+# Install minimal tools + create app user
 RUN apt-get update \
  && apt-get install -y --no-install-recommends busybox-static \
  && rm -rf /var/lib/apt/lists/* /var/log/* /var/cache/* \
  && useradd --create-home --user-group dapp
 
-ENV PATH="/opt/cartesi/bin:${PATH}"
+# Set working directory
 WORKDIR /opt/cartesi/dapp
-COPY --from=build-stage /opt/cartesi/dapp/dist .
 
-# Environment variable for your app (optional, keep if your app uses it)
-#ENV ROLLUP_HTTP_SERVER_URL="http://0.0.0.0:5004"
-#ENV ROLLUP_HTTP_SERVER_URL="http://0.0.0.0:5004"
+# Copy only the built app
+COPY --from=build-stage /opt/cartesi/dapp/dist ./dist
 
-
-# Expose the app port
+# Expose port
 EXPOSE 5004
 
-# Run the app directly instead of rollup-init
-CMD ["node", "index.js"]
-
+# Run the bundled file
+CMD ["node", "dist/index.js"]
