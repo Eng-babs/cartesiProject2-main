@@ -4,7 +4,7 @@
 FROM node:20.8.0-bookworm AS build-stage
 WORKDIR /opt/cartesi/dapp
 COPY . .
-RUN yarn install 
+RUN yarn install
 RUN yarn build
 
 # --- Runtime stage ---
@@ -22,8 +22,11 @@ RUN apt-get update \
 # Set working directory
 WORKDIR /opt/cartesi/dapp
 
-# Copy only the built app
+# Copy built app + required assets
 COPY --from=build-stage /opt/cartesi/dapp/dist ./dist
+COPY --from=build-stage /opt/cartesi/dapp/package.json ./package.json
+COPY --from=build-stage /opt/cartesi/dapp/src/abi.json ./src/abi.json
+COPY --from=build-stage /opt/cartesi/dapp/src/nftAbi.json ./src/nftAbi.json
 
 # Expose port
 EXPOSE 5004
