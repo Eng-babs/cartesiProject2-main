@@ -23,12 +23,11 @@ app.addAdvanceHandler(async ({ metadata, payload }) => {
   // for setting up more contract addresses, restructure input JSON and add conditions here
   storage_contract_address = getAddress(jsonPayload.address)
   console.log("Address is now set", storage_contract_address)
- 
-  }
+ }
  else if (jsonPayload.method === "set_nft_address"){
   nft_contract_address = getAddress(jsonPayload.address)
   console.log("NFT Address is now set", nft_contract_address)
-  }
+  
 
     
     // prepare voucher
