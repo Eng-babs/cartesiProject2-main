@@ -1,5 +1,6 @@
 // Import necessary modules
 import { hexToString } from "viem";
+import http from "http";
 
 // Fake addresses (demo only)
 let storage_contract_address = "";
@@ -9,15 +10,26 @@ let nft_contract_address = "";
 const app = {
   addAdvanceHandler: (handler) => {
     console.log("⚡ Advance handler registered (demo mode).");
-    // We won't actually call the handler unless you want test inputs
+    app._handler = handler;
   },
   createVoucher: ({ destination, payload }) => {
     console.log("📦 Voucher created:", { destination, payload });
   },
   start: async () => {
     console.log("🚀 Demo DApp started at http://0.0.0.0:5004");
-    // Keep process alive
-    setInterval(() => {}, 1000);
+
+    // Create a simple HTTP server for testing
+    const server = http.createServer((req, res) => {
+      if (req.method === "GET" && req.url === "/") {
+        res.writeHead(200, { "Content-Type": "text/plain" });
+        res.end("✅ DealApp demo backend is running!\n");
+      } else {
+        res.writeHead(404);
+        res.end("Not found");
+      }
+    });
+
+    server.listen(5004, "0.0.0.0");
   },
 };
 
