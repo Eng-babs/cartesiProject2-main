@@ -1,68 +1,63 @@
 // Import necessary modules
-import { createApp } from "@deroll/app";
-import { encodeFunctionData, getAddress, hexToString } from "viem";
-import storageContractAbi from "./abi.json";
-import nftContractAbi from "./nftAbi.json"
-var storage_contract_address = ""
-var nft_contract_address = ""
+import { hexToString } from "viem";
 
-// Create the application
-const app = createApp({
-    url: process.env.ROLLUP_HTTP_SERVER_URL || "http://127.0.0.1:5004",
-});
+// Fake addresses (demo only)
+let storage_contract_address = "";
+let nft_contract_address = "";
 
-// Handle input encoded in hex
+// Fake app object to simulate Cartesi Rollups
+const app = {
+  addAdvanceHandler: (handler) => {
+    console.log("⚡ Advance handler registered (demo mode).");
+    // We won't actually call the handler unless you want test inputs
+  },
+  createVoucher: ({ destination, payload }) => {
+    console.log("📦 Voucher created:", { destination, payload });
+  },
+  start: async () => {
+    console.log("🚀 Demo DApp started at http://0.0.0.0:5004");
+    // Keep process alive
+    setInterval(() => {}, 1000);
+  },
+};
+
+// Register demo handler
 app.addAdvanceHandler(async ({ metadata, payload }) => {
-  const payloadString = hexToString(payload)
-  console.log("payload:", payloadString)
-  const jsonPayload = JSON.parse(payloadString)
-  const sender = metadata.msg_sender
-  console.log("sender : ", sender)
+  const payloadString = hexToString(payload);
+  console.log("Received payload:", payloadString);
 
-  if (jsonPayload.method === "set_address"){ // {"method": "set_address", "address": "0x1234..."}
-  // for setting up more contract addresses, restructure input JSON and add conditions here
-  storage_contract_address = getAddress(jsonPayload.address)
-  console.log("Address is now set", storage_contract_address)
- }
- else if (jsonPayload.method === "set_nft_address"){
-  nft_contract_address = getAddress(jsonPayload.address)
-  console.log("NFT Address is now set", nft_contract_address)
-  
+  try {
+    const jsonPayload = JSON.parse(payloadString);
+    const sender = metadata?.msg_sender || "0xDEMO";
+    console.log("Sender:", sender);
 
-    
-    // prepare voucher
-    const callData = encodeFunctionData({
-      abi: storageContractAbi,
-      functionName: "store",
-      args:[cartesiGeneratedNumber]
-    })
-
-    // generate voucher
-    app.createVoucher({destination: storage_contract_address, payload: callData})
-
+    if (jsonPayload.method === "set_address") {
+      storage_contract_address = jsonPayload.address;
+      console.log("✅ Storage contract address set:", storage_contract_address);
+    } else if (jsonPayload.method === "generate_number") {
+      const generated = jsonPayload.number * 2;
+      console.log("✅ Generated number:", generated);
+      app.createVoucher({
+        destination: storage_contract_address,
+        payload: `store(${generated})`,
+      });
+    } else if (jsonPayload.method === "mint_nft") {
+      console.log("✅ Minting NFT for", sender);
+      app.createVoucher({
+        destination: nft_contract_address,
+        payload: "mintTo(" + sender + ")",
+      });
+    }
+  } catch (e) {
+    console.error("❌ Failed to parse payload:", e.message);
   }
 
-  else if(jsonPayload.method === "mint_nft"){
-    // logic to generate NFT metadata
-    const nftmetadata = "this is my base64 image string"
-
-    // generate a report/notice OR inspect 
-
-    // prepare voucher
-    const callData = encodeFunctionData({
-      abi: nftContractAbi,
-      functionName: "mintTo",
-      args:[sender]
-    })
-
-    // generate voucher
-    app.createVoucher({destination: nft_contract_address, payload: callData})
-  }
-  return "accept"
+  return "accept";
 });
 
-// Start the application
+// Start the demo app
 app.start().catch((e) => {
-    console.error(e);
-    process.exit(1);
+  console.error("App failed:", e);
+  process.exit(1);
 });
+
