@@ -4,7 +4,7 @@
 FROM node:20.8.0-bookworm AS build-stage
 WORKDIR /opt/cartesi/dapp
 COPY . .
-RUN yarn install
+RUN yarn install 
 RUN yarn build
 
 # --- Runtime stage ---
@@ -15,18 +15,15 @@ LABEL io.cartesi.rollups.ram_size=128Mi
 
 # Install minimal tools + create app user
 RUN apt-get update \
- && apt-get install -y --no-install-recommends busybox-static \
+ && apt-get install -y --no-install-recommends busybox-static iproute2 net-tools curl \
  && rm -rf /var/lib/apt/lists/* /var/log/* /var/cache/* \
  && useradd --create-home --user-group dapp
 
 # Set working directory
 WORKDIR /opt/cartesi/dapp
 
-# Copy built app + required assets
+# Copy only the built app
 COPY --from=build-stage /opt/cartesi/dapp/dist ./dist
-COPY --from=build-stage /opt/cartesi/dapp/package.json ./package.json
-COPY --from=build-stage /opt/cartesi/dapp/src/abi.json ./src/abi.json
-COPY --from=build-stage /opt/cartesi/dapp/src/nftAbi.json ./src/nftAbi.json
 
 # Expose port
 EXPOSE 5004
