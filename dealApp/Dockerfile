@@ -4,7 +4,8 @@
 FROM node:20.8.0-bookworm AS build-stage
 WORKDIR /opt/cartesi/dapp
 COPY . .
-RUN yarn install && yarn build
+RUN yarn install 
+RUN yarn build
 
 # --- Runtime stage ---
 FROM node:20.8.0-bookworm-slim
