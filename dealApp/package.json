@@ -2,6 +2,7 @@
   "name": "my-dapp",
   "version": "0.1.0",
   "description": "JS DApp",
+  "type": "module",
   "dependencies": {
     "@deroll/app": "^0.7.0",
     "ethers": "^6.7.1",
@@ -11,12 +12,9 @@
     "esbuild": "^0.19.2"
   },
   "scripts": {
-    "build": "esbuild ./src/index.ts --bundle --outfile=dist/index.js --platform=node --target=node20",
+    "build": "esbuild ./src/index.js --bundle --outfile=dist/index.js --platform=node --target=node20",
     "start": "node dist/index.js"
   },
-  "keywords": [
-    "cartesi"
-  ],
+  "keywords": ["cartesi"],
   "license": "MIT"
 }
-
